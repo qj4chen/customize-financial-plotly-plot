@@ -4,7 +4,7 @@ import plotly.io as pio
 import tushare as ts
 from plotly.subplots import make_subplots
 
-token = '6a721053ea3e70bb52605d6c0972caeda9ff080d3671f69bd8b6b434'
+token = 'replace with your token'
 pro = ts.pro_api(token)
 df = pro.daily(ts_code='600519.SH', start_date='20000101', end_date='20211027')
 
@@ -53,7 +53,6 @@ fig = make_subplots(rows=2, cols=1,
                     subplot_titles=['K线图', '成交量']
                     )
 
-# subplot_titles=['K线图', '成交量'])
 
 for text, data in zip(text_list, data_list):
     fig.add_candlestick(
