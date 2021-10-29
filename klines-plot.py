@@ -1,8 +1,8 @@
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import plotly.io as pio
 import tushare as ts
+from plotly.subplots import make_subplots
 
 token = '6a721053ea3e70bb52605d6c0972caeda9ff080d3671f69bd8b6b434'
 pro = ts.pro_api(token)
@@ -13,8 +13,12 @@ df.index = df['trade_date']
 df.index = pd.to_datetime(df.index)
 df.sort_index(inplace=True)
 
+df['color'] = 'red'
+df.loc[df['close'] < df['open'], 'color'] = 'green'
+
+
 # calculate k lines using 'open', 'high', 'low', 'close', 'vol'
-pio.templates.default = 'plotly_dark'
+# pio.templates.default = 'plotly_dark'
 
 
 def resample_k_lines(data, resample_config=None):
@@ -34,50 +38,76 @@ def resample_k_lines(data, resample_config=None):
     resampled_data['low'] = data['low'].resample(**resample_config).min()
     resampled_data['high'] = data['high'].resample(**resample_config).max()
     resampled_data['vol'] = data['vol'].resample(**resample_config).sum()
+    resampled_data['color'] = 'red'
+    resampled_data.loc[resampled_data['close'] < resampled_data['open'], 'color'] = 'green'
     return resampled_data
 
 
 data_list = [df] + [resample_k_lines(df, dict(rule=freq)) for freq in ['1W', '1M', '3M', '6M', '1Y']]
-text_list = ['原始', '周线', '月线', '3月线', '半年线', '年线']
+text_list = ['日线', '周线', '月线', '3月线', '半年线', '年线']
 
+fig = make_subplots(rows=2, cols=1,
+                    shared_xaxes=True,
+                    row_heights=[2, 1],
+                    vertical_spacing=0.05,
+                    subplot_titles=['K线图', '成交量']
+                    )
 
-fig = go.Figure(data=[
-    go.Candlestick(x=data.index.strftime("%Y/%m/%d"),
-                   open=data.open,
-                   high=data.high,
-                   low=data.low,
-                   close=data.close,
-                   increasing=dict(line_color='red'),
-                   decreasing=dict(line_color='green'),
-                   visible=False
-                   ) for data in data_list
-])
+# subplot_titles=['K线图', '成交量'])
+
+for text, data in zip(text_list, data_list):
+    fig.add_candlestick(
+        x=data.index,
+        open=data.open,
+        high=data.high,
+        low=data.low,
+        close=data.close,
+        increasing=dict(line_color='red'),
+        decreasing=dict(line_color='green'),
+        visible=False,
+        name='k-lines_' + text,
+        row=1, col=1)
+
+for text, data in zip(text_list, data_list):
+    # fig.add_trace(
+    #     go.Scatter(x=data.index, y=data.vol, visible=False,),
+    #     row=2, col=1
+    # )
+    fig.add_trace(
+        go.Bar(x=data.index, y=data.vol, visible=False, marker_color=data['color'], name='Volume_' + text),
+        row=2, col=1
+    )
 
 fig.update_layout(
     updatemenus=[
         dict(
             type="buttons",
-            direction="right",
-            active=0,
-            x=0.57,
-            y=1.2,
+            direction="left",
+            x=1.0,
+            y=1.1,
             buttons=[
                         dict(label='None',
                              method='update',
-                             args=[{"visible": [False for _ in range(len(data_list))]}]
+                             args=[{"visible": [False for _ in range(len(data_list))]}] * 2
                              )
                     ] +
                     [
                         dict(label=text,
                              method="update",
-                             args=[{"visible": [True if _ == idx else False for _ in range(len(data_list))]},
-                                   {"title": "K线图",
-                                    "annotations": []}]) for idx, text in enumerate(text_list)
+                             args=[{"visible": [True if _ == idx else False for _ in range(len(data_list))] * 2}])
+                        for idx, text in enumerate(text_list)
                     ],
         )
     ]
 )
 
-# todo: add subplots
+fig.update_layout(xaxis_rangeslider_visible=True,
+                  autosize=True,
+                  title=dict(text='贵州茅台K线图', x=0.5),
+                  )
+# modify the subplot title by fig.layout['annotations']
+fig.update_xaxes(rangeslider={'visible': False}, row=1, col=1)
+fig.update_xaxes(rangeslider={'visible': True, 'thickness': 0.05}, row=2, col=1)
 
-fig.write_html('sample_plot.html')
+
+fig.write_html('modified_plot.html')

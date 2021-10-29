@@ -16,3 +16,10 @@ by clicking some buttons as shown in the picture below.
 The first step we need to conduct is to generate resampled data for the plot purpose. For resampling, we introduce the 
 `resample` function from `pandas` package. For the full documentation of this function, please refer to this [`link`](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.resample.html)
 
+# Add button to the plot
+So far we have investigated how to add buttons to the plot so that the plot becomes interchangeable. Now we will add subplots
+so that the plot be able to display the `volume` data in a subplot that shares x-axis with the k-line plot.
+
+# Make subplots and do some typography work
+
+
