@@ -1,6 +1,5 @@
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.io as pio
 import tushare as ts
 from plotly.subplots import make_subplots
 
@@ -15,10 +14,6 @@ df.sort_index(inplace=True)
 
 df['color'] = 'red'
 df.loc[df['close'] < df['open'], 'color'] = 'green'
-
-
-# calculate k lines using 'open', 'high', 'low', 'close', 'vol'
-# pio.templates.default = 'plotly_dark'
 
 
 def resample_k_lines(data, resample_config=None):
@@ -68,10 +63,6 @@ for text, data in zip(text_list, data_list):
         row=1, col=1)
 
 for text, data in zip(text_list, data_list):
-    # fig.add_trace(
-    #     go.Scatter(x=data.index, y=data.vol, visible=False,),
-    #     row=2, col=1
-    # )
     fig.add_trace(
         go.Bar(x=data.index, y=data.vol, visible=False, marker_color=data['color'], name='Volume_' + text),
         row=2, col=1
