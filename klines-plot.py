@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 import tushare as ts
 from plotly.subplots import make_subplots
 
-token = 'replace with your token'
+token = '6a721053ea3e70bb52605d6c0972caeda9ff080d3671f69bd8b6b434'
 pro = ts.pro_api(token)
 df = pro.daily(ts_code='600519.SH', start_date='20000101', end_date='20211027')
 
@@ -49,7 +49,6 @@ fig = make_subplots(rows=2, cols=1,
                     subplot_titles=['K线图', '成交量']
                     )
 
-
 for text, data in zip(text_list, data_list):
     fig.add_candlestick(
         x=data.index,
@@ -85,7 +84,8 @@ fig.update_layout(
                     [
                         dict(label=text,
                              method="update",
-                             args=[{"visible": [True if _ == idx else False for _ in range(len(data_list))] * 2}])
+                             args=[{"visible": [True if _ == idx else False for _ in range(len(data_list))] * 2,
+                                    }, {'xaxisrangebreaks': dict(bounds=['sat', 'mon'])}]) # todo: a function to get vaccant dates and remove it by rangebreaks
                         for idx, text in enumerate(text_list)
                     ],
         )
@@ -101,6 +101,7 @@ while k < n_cols:
     fig.update_xaxes(rangeslider={'visible': False}, row=k, col=1)
     k += 1
 fig.update_xaxes(rangeslider={'visible': True, 'thickness': 0.05}, row=n_cols, col=1)
+# fig.update_xaxes(rangebreaks=[dict(bounds=['sat', 'mon'])])
 
 
 fig.write_html('modified_plot.html')
