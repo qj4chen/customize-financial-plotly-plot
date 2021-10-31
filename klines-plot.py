@@ -41,9 +41,10 @@ def resample_k_lines(data, resample_config=None):
 data_list = [df] + [resample_k_lines(df, dict(rule=freq)) for freq in ['1W', '1M', '3M', '6M', '1Y']]
 text_list = ['日线', '周线', '月线', '3月线', '半年线', '年线']
 
+n_cols = 2
 fig = make_subplots(rows=2, cols=1,
                     shared_xaxes=True,
-                    row_heights=[2, 1],
+                    row_heights=[n_cols, 1],
                     vertical_spacing=0.05,
                     subplot_titles=['K线图', '成交量']
                     )
@@ -91,13 +92,15 @@ fig.update_layout(
     ]
 )
 
-fig.update_layout(xaxis_rangeslider_visible=True,
-                  autosize=True,
+fig.update_layout(autosize=True,
                   title=dict(text='贵州茅台K线图', x=0.5),
                   )
 # modify the subplot title by fig.layout['annotations']
-fig.update_xaxes(rangeslider={'visible': False}, row=1, col=1)
-fig.update_xaxes(rangeslider={'visible': True, 'thickness': 0.05}, row=2, col=1)
+k = 1
+while k < n_cols:
+    fig.update_xaxes(rangeslider={'visible': False}, row=k, col=1)
+    k += 1
+fig.update_xaxes(rangeslider={'visible': True, 'thickness': 0.05}, row=n_cols, col=1)
 
 
 fig.write_html('modified_plot.html')
