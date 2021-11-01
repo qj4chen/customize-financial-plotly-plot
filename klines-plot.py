@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import plotly.graph_objects as go
 import tushare as ts
@@ -35,11 +36,21 @@ def resample_k_lines(data, resample_config=None):
     resampled_data['vol'] = data['vol'].resample(**resample_config).sum()
     resampled_data['color'] = 'red'
     resampled_data.loc[resampled_data['close'] < resampled_data['open'], 'color'] = 'green'
+    resampled_data = resampled_data[resampled_data['vol'] > 0.0]
     return resampled_data
+
+
+def find_range_breaks(dataframe, freq=None):
+    index = dataframe.index
+    start = index[0]
+    end = index[-1]
+    filled_index = pd.date_range(start=start, end=end, freq=freq)
+    return filled_index.difference(index)
 
 
 data_list = [df] + [resample_k_lines(df, dict(rule=freq)) for freq in ['1W', '1M', '3M', '6M', '1Y']]
 text_list = ['日线', '周线', '月线', '3月线', '半年线', '年线']
+freq_list = ['1D', '1W', '1M', '3M', '6M', '1Y']
 
 n_cols = 2
 fig = make_subplots(rows=2, cols=1,
@@ -73,6 +84,7 @@ fig.update_layout(
         dict(
             type="buttons",
             direction="left",
+            active=0,
             x=1.0,
             y=1.1,
             buttons=[
@@ -84,8 +96,11 @@ fig.update_layout(
                     [
                         dict(label=text,
                              method="update",
-                             args=[{"visible": [True if _ == idx else False for _ in range(len(data_list))] * 2,
-                                    }, {'xaxisrangebreaks': dict(bounds=['sat', 'mon'])}]) # todo: a function to get vaccant dates and remove it by rangebreaks
+                             args=[{"visible": [True if _ == idx else False for _ in range(len(data_list))] * 2, },
+                                   {'xaxis.rangebreaks': [
+                                       dict(values=find_range_breaks(dataframe=data_list[idx],
+                                                                     freq=freq_list[idx]))]}
+                                   ])
                         for idx, text in enumerate(text_list)
                     ],
         )
@@ -101,7 +116,7 @@ while k < n_cols:
     fig.update_xaxes(rangeslider={'visible': False}, row=k, col=1)
     k += 1
 fig.update_xaxes(rangeslider={'visible': True, 'thickness': 0.05}, row=n_cols, col=1)
-# fig.update_xaxes(rangebreaks=[dict(bounds=['sat', 'mon'])])
 
-
-fig.write_html('modified_plot.html')
+if not os.path.exists('./doc'):
+    os.makedirs('./doc')
+fig.write_html('./doc/index.html')
