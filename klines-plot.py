@@ -117,6 +117,6 @@ while k < n_cols:
     k += 1
 fig.update_xaxes(rangeslider={'visible': True, 'thickness': 0.05}, row=n_cols, col=1)
 
-if not os.path.exists('./doc'):
-    os.makedirs('./doc')
-fig.write_html('./doc/index.html')
+if not os.path.exists('./docs'):
+    os.makedirs('./docs')
+fig.write_html('./docs/index.html')
